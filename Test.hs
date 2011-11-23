@@ -18,18 +18,28 @@ recvLine ser = f ""
                              Just c' -> f (s++[c'])
 
 main = withSerial "/dev/ttyUSB0" settings test
-test ser = do sendString ser "+++"
-              Just a <- recvLine ser
-              print a
-              sendString ser "ATAP1\r\n"
-              Just a <- recvLine ser
-              print a
+test ser = do enterAPI ser
               let cmd = (ATCommand { apiFrameId=0x0
                                    , apiATCommand="ATND"
                                    , apiParam=BS.empty })
               sendFrame ser $ Frame cmd
               f <- recvFrame ser
               print f
+
+enterAPI :: SerialPort -> IO ()
+enterAPI ser = do sendString ser "+++"
+                  a <- recvLine ser
+                  case a of
+                       -- Assume we're already in API mode
+                       Nothing     -> return ()
+                       -- Enable API mode
+                       Just "OK\r" -> do sendString ser "ATAP 1\r"
+                                         Just a <- recvLine ser
+                                         sendString ser "ATAP\r"
+                                         Just a <- recvLine ser
+                                         print a
+                                         print "In API mode"
+                       Just _      -> fail "Unknown response"
 
 sendFrame :: SerialPort -> Frame -> IO ()
 sendFrame ser frame = let a = encode frame
