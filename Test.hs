@@ -1,4 +1,3 @@
-import Data.Maybe (maybeToList)
 import Data.List (isSuffixOf)
 import System.Hardware.Serialport
 import System.Hardware.XBee.API
@@ -10,18 +9,20 @@ import Numeric (showHex)
 
 settings = defaultSerialSettings { timeout=10 }
 
-recvLine :: SerialPort -> IO String
+recvLine :: SerialPort -> IO (Maybe String)
 recvLine ser = f ""
-        where f s | "\r" `isSuffixOf` s  = return s
-              f s                        = do c <- recvChar ser
-                                              f (s ++ maybeToList c)
+        where f s | "\r" `isSuffixOf` s  = return (Just s)
+              f s  = do c <- recvChar ser
+                        case c of
+                             Nothing -> return Nothing
+                             Just c' -> f (s++[c'])
 
 main = withSerial "/dev/ttyUSB0" settings test
 test ser = do sendString ser "+++"
-              a <- recvLine ser
+              Just a <- recvLine ser
               print a
               sendString ser "ATAP1\r\n"
-              a <- recvLine ser
+              Just a <- recvLine ser
               print a
               let cmd = (ATCommand { apiFrameId=0x0
                                    , apiATCommand="ATND"
