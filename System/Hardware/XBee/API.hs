@@ -8,7 +8,6 @@ import qualified Data.ByteString as BS
 import Data.Serialize
 import Data.Serialize.Get (getBytes)
 import Control.Monad (when)
-
 import Text.Printf
 
 unpackToString :: BS.ByteString -> String
@@ -29,6 +28,10 @@ data TxStatus = TxSuccess
 
 data APICmd -- * Sent from device to host
             = ModemStatus { apiStatus :: Word8 }
+            | ATResponse { apiFrameId :: Word8
+                         , apiATCommand :: String
+                         , apiStatus :: Word8
+                         , apiCmdData :: BS.ByteString }
             | RemoteATResponse { apiFrameId :: Word8
                                , apiAddr :: Address
                                , apiATCommand :: String
@@ -71,6 +74,11 @@ instance Serialize APICmd where
                    case cmdid of
                         0x8a -> do statusByte <- get
                                    return $ ModemStatus statusByte
+                        0x88 -> do frameId <- get
+                                   cmd <- getBytes 2
+                                   status <- get
+                                   cmdData <- getRemainingBytes
+                                   return $ ATResponse frameId (unpackToString cmd) status cmdData
                         0x97 -> do frameId <- get
                                    addr64 <- get :: Get Word64
                                    addr16 <- get :: Get Word16
