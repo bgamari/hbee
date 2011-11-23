@@ -174,4 +174,3 @@ instance Serialize Frame where
                         Left a -> fail $ "Failed to parse command " ++ a
                         Right cmd -> return $ Frame cmd
 
-initialConfig = "+++ATAP1\r\n"
