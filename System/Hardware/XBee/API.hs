@@ -159,6 +159,8 @@ instance Serialize APICmd where
                    put options
                    put d
 
+        put x = fail $ printf "Putting %s not implemented" (show x)
+
 data Frame = Frame APICmd deriving (Show, Eq)
 
 instance Serialize Frame where
