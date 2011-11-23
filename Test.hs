@@ -49,9 +49,9 @@ recvFrame :: SerialPort -> IO Frame
 recvFrame ser = f $ runGetPartial (get :: Get Frame)
         where f cont = do a <- recvString ser
                           case cont (packToByteString a) of
-                               Fail err     -> fail err
-                               Partial conf -> f cont
-                               Done r rest  -> return r
+                               Fail err      -> fail err
+                               Partial cont' -> f cont'
+                               Done r rest   -> return r
 
 byteString :: BS.ByteString -> Doc
 byteString = hsep . map (\x->text $ printf "%02x" x) . BS.unpack
