@@ -95,12 +95,12 @@ instance Serialize APICmd where
                         0x80 -> do source <- get
                                    rssi <- get
                                    options <- get
-                                   d <- get
+                                   d <- getRemainingBytes
                                    return $ Receive (LongAddr source) rssi options d
                         0x81 -> do source <- get
                                    rssi <- get
                                    options <- get
-                                   d <- get
+                                   d <- getRemainingBytes
                                    return $ Receive (ShortAddr source) rssi options d
                         0x82 -> do source <- get
                                    getIOData (LongAddr source)
@@ -158,14 +158,14 @@ instance Serialize APICmd where
                    put frameId
                    put dest
                    put options
-                   put d
+                   putByteString d
 
         put (TransmitRequest frameId (ShortAddr dest) options d) =
                 do put (0x01 :: Word8)
                    put frameId
                    put dest
                    put options
-                   put d
+                   putByteString d
 
         put x = fail $ printf "Putting %s not implemented" (show x)
 
