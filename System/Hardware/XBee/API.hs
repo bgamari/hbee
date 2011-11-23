@@ -9,6 +9,8 @@ import Data.Serialize
 import Data.Serialize.Get (getBytes)
 import Control.Monad (when)
 
+import Text.Printf
+
 unpackToString :: BS.ByteString -> String
 unpackToString = map (toEnum . fromIntegral) . BS.unpack
 
@@ -98,6 +100,7 @@ instance Serialize APICmd where
                                    getIOData (LongAddr source)
                         0x83 -> do source <- get
                                    getIOData (ShortAddr source)
+                        x    -> fail $ printf "Unknown API command 0x%02x" x
 
                 where getIOData source = do
                                    nSamp <- get :: Get Word8
