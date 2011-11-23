@@ -55,7 +55,6 @@ data APICmd -- * Sent from device to host
                              , apiParam :: BS.ByteString }
             | RemoteATCommand { apiFrameId :: Word8
                               , apiDest :: Address
-                              , apiDestNetwork :: Word16
                               , apiOptions :: Word8
                               , apiATCommand :: String
                               , apiParam :: BS.ByteString }
@@ -136,14 +135,23 @@ instance Serialize APICmd where
                    putByteString (packToByteString cmd)
                    putByteString param
 
-        put (RemoteATCommand frameId (LongAddr dest) destNet options cmd param) =
-                do put (0x17 :: Word8)
-                   put frameId
-                   put dest
-                   put destNet
-                   put options
-                   put cmd
-                   put param
+        put (RemoteATCommand frameId (ShortAddr dest) options cmd param) =
+                do putWord8 0x17
+                   putWord8 frameId
+                   putWord64be 0
+                   putWord16be dest
+                   putWord8 options
+                   putByteString (packToByteString cmd)
+                   putByteString param
+
+        put (RemoteATCommand frameId (LongAddr dest) options cmd param) =
+                do putWord8 0x17
+                   putWord8 frameId
+                   putWord64be dest
+                   putWord16be 0xfffe
+                   putWord8 options
+                   putByteString (packToByteString cmd)
+                   putByteString param
 
         put (TransmitRequest frameId (LongAddr dest) options d) =
                 do put (0x00 :: Word8)
