@@ -4,8 +4,8 @@ import System.Hardware.XBee.API
 import Data.Serialize
 import qualified Data.ByteString as BS
 
+import Text.Printf
 import Text.PrettyPrint.HughesPJ
-import Numeric (showHex)
 
 settings = defaultSerialSettings { timeout=10 }
 
@@ -54,4 +54,5 @@ recvFrame ser = f $ runGetPartial (get :: Get Frame)
                                Done r rest  -> return r
 
 byteString :: BS.ByteString -> Doc
-byteString = hsep . map (\x->text $ showHex x "") . BS.unpack
+byteString = hsep . map (\x->text $ printf "%02x" x) . BS.unpack
+
