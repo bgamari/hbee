@@ -7,6 +7,7 @@ module System.Hardware.XBee ( withXBee
 import Data.Serialize hiding (flush)
 import System.Hardware.Serialport
 import System.Hardware.XBee.API
+import System.Hardware.XBee.Utils
 import Data.List (isSuffixOf)
 
 settings = defaultSerialSettings { timeout=50 }

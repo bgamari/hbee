@@ -1,4 +1,8 @@
-module System.Hardware.XBee.API where
+module System.Hardware.XBee.API ( Address(..)
+                                , TxStatus(..)
+                                , APICmd(..)
+                                , Frame(..)
+                                ) where
 
 import Data.List (foldl1')
 import Data.Char (ord)
@@ -9,12 +13,7 @@ import Data.Serialize
 import Data.Serialize.Get (getBytes)
 import Control.Monad (when)
 import Text.Printf
-
-unpackToString :: BS.ByteString -> String
-unpackToString = map (toEnum . fromIntegral) . BS.unpack
-
-packToByteString :: String -> BS.ByteString
-packToByteString = BS.pack . map (fromIntegral . fromEnum)
+import System.Hardware.XBee.Utils
 
 data Address = LongAddr Word64
              | ShortAddr Word16
@@ -66,8 +65,6 @@ data APICmd -- * Sent from device to host
                               , apiData :: BS.ByteString }
             deriving (Show, Eq)
 
-getRemainingBytes = remaining >>= getBytes
-                       
 instance Serialize APICmd where
         get = 
                 do cmdid <- get :: Get Word8
