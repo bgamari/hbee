@@ -118,10 +118,12 @@ instance Serialize APICmd where
                                    let activeD = filter (testBit chInd) [0..8]
                                        activeA = filter (\i->testBit chInd (i+9)) [0..5]
                                    --when (length activeA /= fromIntegral nSamp) (fail "Inconsistent sample count") -- TODO: Not sure why this doesn't hold
-                                   dCh <- get :: Get Word16
-                                   aChs <- mapM (\_ -> get :: Get Word16) [1..nSamp]
-                                   let dValues = zip activeD (map (testBit dCh) activeD)
-                                       aValues = zip activeA aChs
+                                   dValues <- if null activeD
+                                                 then return []
+                                                 else do dCh <- get :: Get Word16
+                                                         return $ zip activeD (map (testBit dCh) activeD)  
+                                   aChs <- mapM (\_ -> get :: Get Word16) [0..nSamp]
+                                   let aValues = zip activeA aChs
                                    return $ IOData { apiRSSI = rssi
                                                    , apiOptions = options
                                                    , apiSource = source
