@@ -4,8 +4,9 @@ import System.Hardware.XBee.API
 import Data.Serialize
 import qualified Data.ByteString as BS
 
+import Debug.Trace
 import Text.Printf
-import Text.PrettyPrint.HughesPJ
+import Data.List (intercalate)
 
 settings = defaultSerialSettings { timeout=10 }
 
@@ -19,9 +20,12 @@ recvLine ser = f ""
 
 main = withSerial "/dev/ttyUSB0" settings test
 test ser = do enterAPI ser
-              let cmd = (ATCommand { apiFrameId=0x0
-                                   , apiATCommand="ATND"
+              let cmd = (ATCommand { apiFrameId=0x52
+                                   , apiATCommand="ND"
                                    , apiParam=BS.empty })
+              print cmd
+              print $ formatBytes $ encode $ Frame cmd
+              System.Hardware.Serialport.flush ser
               sendFrame ser $ Frame cmd
               f <- recvFrame ser
               print f
@@ -38,21 +42,21 @@ enterAPI ser = do sendString ser "+++"
                                          sendString ser "ATAP\r"
                                          Just a <- recvLine ser
                                          print a
-                                         print "In API mode"
                        Just _      -> fail "Unknown response"
 
 sendFrame :: SerialPort -> Frame -> IO ()
 sendFrame ser frame = let a = encode frame
-                      in print (byteString a) >> sendString ser (unpackToString a)
+                      in sendString ser (unpackToString a)
 
 recvFrame :: SerialPort -> IO Frame
 recvFrame ser = f $ runGetPartial (get :: Get Frame)
         where f cont = do a <- recvString ser
+                          traceShow a $ return ()
                           case cont (packToByteString a) of
                                Fail err      -> fail err
                                Partial cont' -> f cont'
                                Done r rest   -> return r
 
-byteString :: BS.ByteString -> Doc
-byteString = hsep . map (\x->text $ printf "%02x" x) . BS.unpack
+formatBytes :: BS.ByteString -> String
+formatBytes = intercalate " " . map (printf "%02x") . BS.unpack
 
