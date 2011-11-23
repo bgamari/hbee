@@ -63,6 +63,8 @@ data APICmd -- * Sent from device to host
                               , apiData :: BS.ByteString }
             deriving (Show, Eq)
 
+getRemainingBytes = remaining >>= getBytes
+                       
 instance Serialize APICmd where
         get = 
                 do cmdid <- get :: Get Word8
@@ -74,7 +76,7 @@ instance Serialize APICmd where
                                    addr16 <- get :: Get Word16
                                    cmd <- getBytes 2
                                    status <- get
-                                   cmdData <- get
+                                   cmdData <- getRemainingBytes
                                    let addr = if addr64 /= 0 then LongAddr addr64
                                                              else ShortAddr addr16
                                    return $ RemoteATResponse frameId addr (unpackToString cmd) status cmdData
@@ -120,14 +122,14 @@ instance Serialize APICmd where
         put (ATCommand frameId cmd param) =
                 do put (0x08 :: Word8)
                    put frameId
-                   put (packToByteString cmd)
-                   put param
+                   putByteString (packToByteString cmd)
+                   putByteString param
 
         put (ATQueueCommand frameId cmd param) =
                 do put (0x09 :: Word8)
                    put frameId
-                   put (packToByteString cmd)
-                   put param
+                   putByteString (packToByteString cmd)
+                   putByteString param
 
         put (RemoteATCommand frameId (LongAddr dest) destNet options cmd param) =
                 do put (0x17 :: Word8)
