@@ -1,14 +1,14 @@
 import Data.List (isSuffixOf)
 import System.Hardware.Serialport
 import System.Hardware.XBee.API
-import Data.Serialize
+import Data.Serialize hiding (flush)
 import qualified Data.ByteString as BS
 
 import Debug.Trace
 import Text.Printf
 import Data.List (intercalate)
 
-settings = defaultSerialSettings { timeout=10 }
+settings = defaultSerialSettings { timeout=50 }
 
 recvLine :: SerialPort -> IO (Maybe String)
 recvLine ser = f ""
@@ -25,7 +25,7 @@ test ser = do enterAPI ser
                                    , apiParam=BS.empty })
               print cmd
               print $ formatBytes $ encode $ Frame cmd
-              System.Hardware.Serialport.flush ser
+              flush ser
               sendFrame ser $ Frame cmd
               f <- recvFrame ser
               print f
@@ -42,6 +42,9 @@ enterAPI ser = do sendString ser "+++"
                                          sendString ser "ATAP\r"
                                          Just a <- recvLine ser
                                          print a
+                                         sendString ser "ATCN\r"
+                                         Just a <- recvLine ser
+                                         flush ser
                        Just _      -> fail "Unknown response"
 
 sendFrame :: SerialPort -> Frame -> IO ()
