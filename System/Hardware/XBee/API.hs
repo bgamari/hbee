@@ -156,12 +156,12 @@ data Frame = Frame APICmd deriving (Show, Eq)
 
 instance Serialize Frame where
         put (Frame d) =
-                do put (0x7e :: Word8)
+                do putWord8 0x7e
                    let payload = encode d
                        csum = 0xff - (BS.foldl1' (+) payload) .&. 0xff
-                   put (fromIntegral $ BS.length payload :: Word16)
-                   put payload
-                   put (fromIntegral csum :: Word8)
+                   putWord16be (fromIntegral $ BS.length payload)
+                   putByteString payload
+                   putWord8 (fromIntegral csum)
         get  =
                 do delim <- get :: Get Word8
                    when (delim /= 0x7e) (fail "Incorrect start delimiter")
