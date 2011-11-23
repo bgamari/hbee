@@ -42,13 +42,13 @@ sendFrame :: SerialPort -> Frame -> IO ()
 sendFrame ser frame = let a = encode frame
                       in sendString ser (unpackToString a)
 
-recvFrame :: SerialPort -> IO Frame
+recvFrame :: SerialPort -> IO (Either String Frame)
 recvFrame ser = f $ runGetPartial (get :: Get Frame)
         where f cont = do a <- recvString ser
                           case cont (packToByteString a) of
-                               Fail err      -> fail err
+                               Fail err      -> return (Left err)
                                Partial cont' -> f cont'
-                               Done r rest   -> return r
+                               Done r rest   -> return (Right r)
 
 withXBee :: FilePath -> (SerialPort -> IO ()) -> IO ()
 withXBee device f = withSerial device settings (\ser -> do enterAPI ser

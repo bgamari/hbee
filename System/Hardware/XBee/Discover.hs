@@ -15,13 +15,17 @@ discoverNodes ser =
                                , apiParam=BS.empty }
            sendFrame ser $ Frame cmd
            let collect :: [NodeDiscResp] -> IO [NodeDiscResp]
-               collect nodes = do Frame f <- recvFrame ser
-                                  let d = apiCmdData f
-                                  if BS.null d
-                                     then return nodes
-                                     else case decode d of 
-                                               Left err -> collect nodes
-                                               Right n  -> collect (n:nodes)
+               collect nodes =
+                        do r <- recvFrame ser
+                           case r of
+                                Right (Frame f) ->
+                                        do let d = apiCmdData f
+                                           if BS.null d
+                                              then return nodes
+                                              else case decode d of 
+                                                        Left err -> collect nodes
+                                                        Right n  -> collect (n:nodes)
+                                Left _          -> collect nodes
            collect []
 
 data NodeDiscResp = NodeDiscResp { ndAddress :: Word16
