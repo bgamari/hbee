@@ -1,4 +1,4 @@
-module XBee where
+module System.Hardware.XBee.API where
 
 import Data.List (foldl1')
 import Data.Char (ord)

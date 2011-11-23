@@ -1,7 +1,7 @@
 import Data.Maybe (maybeToList)
 import Data.List (isSuffixOf)
 import System.Hardware.Serialport
-import XBee
+import System.Hardware.XBee.API
 import Data.Serialize
 import qualified Data.ByteString as BS
 
