@@ -8,24 +8,29 @@ import System.Hardware.XBee
 import System.Hardware.XBee.Utils
 import System.Hardware.Serialport
 
+data RespFrame = FinishedFrame | NodeFrame NodeDiscResp | EmptyFrame
+
 discoverNodes :: SerialPort -> IO [NodeDiscResp]
 discoverNodes ser =
         do let cmd = ATCommand { apiFrameId=0x52
                                , apiATCommand="ND"
                                , apiParam=BS.empty }
            sendFrame ser $ Frame cmd
-           let collect :: [NodeDiscResp] -> IO [NodeDiscResp]
+           let nodeFromFrame :: Either String Frame -> RespFrame
+               nodeFromFrame (Left _) = EmptyFrame
+               nodeFromFrame (Right (Frame (ATResponse { apiCmdData=d })) )
+                        | BS.null d  = FinishedFrame
+                        | otherwise  = case decode d of
+                                            Left err -> EmptyFrame
+                                            Right n  -> NodeFrame n
+
+               collect :: [NodeDiscResp] -> IO [NodeDiscResp]
                collect nodes =
                         do r <- recvFrame ser
-                           case r of
-                                Right (Frame f) ->
-                                        do let d = apiCmdData f
-                                           if BS.null d
-                                              then return nodes
-                                              else case decode d of 
-                                                        Left err -> collect nodes
-                                                        Right n  -> collect (n:nodes)
-                                Left _          -> collect nodes
+                           case nodeFromFrame r of
+                                FinishedFrame  -> return nodes
+                                NodeFrame n    -> collect (n:nodes)
+                                EmptyFrame     -> collect nodes
            collect []
 
 data NodeDiscResp = NodeDiscResp { ndAddress :: Word16
