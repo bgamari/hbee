@@ -36,7 +36,7 @@ enterAPI ser = do flush ser
                                          sendString ser "ATCN\r"
                                          Just a <- recvLine ser
                                          flush ser
-                       Just _      -> fail "Unknown response"
+                       Just x      -> return () --fail $ "Unknown response: "++show x
 
 sendFrame :: SerialPort -> Frame -> IO ()
 sendFrame ser frame = let a = encode frame
