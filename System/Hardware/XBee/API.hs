@@ -43,6 +43,8 @@ data APICmd -- * Sent from device to host
                       , apiOptions :: Word8
                       , apiData :: BS.ByteString }
             | IOData { apiSource :: Address
+                     , apiRSSI :: Word8
+                     , apiOptions :: Word8
                      , apiDChannels :: [(Int, Bool)]
                      , apiAChannels :: [(Int, Word16)] }
 
@@ -109,16 +111,20 @@ instance Serialize APICmd where
                         x    -> fail $ printf "Unknown API command 0x%02x" x
 
                 where getIOData source = do
+                                   rssi <- get
+                                   options <- get
                                    nSamp <- get :: Get Word8
                                    chInd <- get :: Get Word16
                                    let activeD = filter (testBit chInd) [0..8]
                                        activeA = filter (\i->testBit chInd (i+9)) [0..5]
-                                   when (length activeA /= fromIntegral nSamp) (fail "Inconsistent sample count")
+                                   --when (length activeA /= fromIntegral nSamp) (fail "Inconsistent sample count") -- TODO: Not sure why this doesn't hold
                                    dCh <- get :: Get Word16
-                                   aChs <- mapM (\_ -> get :: Get Word16) [0..nSamp]
+                                   aChs <- mapM (\_ -> get :: Get Word16) [1..nSamp]
                                    let dValues = zip activeD (map (testBit dCh) activeD)
                                        aValues = zip activeA aChs
-                                   return $ IOData { apiSource = source
+                                   return $ IOData { apiRSSI = rssi
+                                                   , apiOptions = options
+                                                   , apiSource = source
                                                    , apiDChannels = dValues
                                                    , apiAChannels = aValues }
 
