@@ -122,7 +122,7 @@ instance Serialize APICmd where
                                                  then return []
                                                  else do dCh <- get :: Get Word16
                                                          return $ zip activeD (map (testBit dCh) activeD)  
-                                   aChs <- mapM (\_ -> get :: Get Word16) [0..nSamp]
+                                   aChs <- mapM (\_ -> get :: Get Word16) [1..length activeA]
                                    let aValues = zip activeA aChs
                                    return $ IOData { apiRSSI = rssi
                                                    , apiOptions = options
