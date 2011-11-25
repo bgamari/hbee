@@ -45,8 +45,8 @@ Cabal-version:       >=1.2
 
 Library
   -- Modules exported by the library.
-  Exposed-modules:     System.Hardware.XBee.API
+  Exposed-modules:     System.Hardware.XBee System.Hardware.XBee.Discover
   
   -- Packages needed in order to build this package.
-  Build-depends:       base, cereal, bytestring
+  Build-depends:       base, cereal, bytestring, serialport
   
