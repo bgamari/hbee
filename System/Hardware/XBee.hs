@@ -48,8 +48,10 @@ sendFrame ser frame = let a = encode frame
 
 recvFrame :: SerialPort -> IO (Either String Frame)
 recvFrame ser = f $ runGetPartial (get :: Get Frame)
-        where f cont = do a <- recv ser 100
-                          case cont a of
+        where f cont = do a <- recv ser 2
+                          if BS.null a
+                          then f cont
+                          else case cont a of
                                Fail err      -> return (Left err)
                                Partial cont' -> f cont'
                                Done r rest   -> return (Right r)
