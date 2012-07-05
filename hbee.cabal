@@ -48,5 +48,5 @@ Library
   Exposed-modules:     System.Hardware.XBee System.Hardware.XBee.Discover
   
   -- Packages needed in order to build this package.
-  Build-depends:       base, cereal, bytestring, serialport
+  Build-depends:       base, cereal, bytestring, serialport >= 0.4.4
   

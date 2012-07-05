@@ -25,7 +25,7 @@ data TxStatus = TxSuccess
               | TxPurged
               deriving (Show, Eq)
 
-data APICmd -- * Sent from device to host
+data APICmd -- Sent from device to host
             = ModemStatus { apiStatus :: Word8 }
             | ATResponse { apiFrameId :: Word8
                          , apiATCommand :: String
@@ -48,7 +48,7 @@ data APICmd -- * Sent from device to host
                      , apiDChannels :: [(Int, Bool)]
                      , apiAChannels :: [(Int, Word16)] }
 
-            -- * Sent from host to device
+            -- Sent from host to device
             | ATCommand { apiFrameId :: Word8
                         , apiATCommand :: String
                         , apiParam :: BS.ByteString }
