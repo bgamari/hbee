@@ -13,9 +13,8 @@ import Data.List (isSuffixOf)
 import Data.Monoid
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
-import Data.Char
 
-settings = defaultSerialSettings { timeout=50 }
+settings = defaultSerialSettings { timeout=50000, commSpeed=CS9600 }
 
 recvLine :: SerialPort -> IO (Maybe ByteString)
 recvLine ser = f ""
@@ -49,13 +48,13 @@ sendFrame ser frame = let a = encode frame
 
 recvFrame :: SerialPort -> IO (Either String Frame)
 recvFrame ser = f $ runGetPartial (get :: Get Frame)
-        where f cont = do a <- recv ser 2
+        where f cont = do a <- recv ser 20
                           if BS.null a
-                          then f cont
-                          else print (map ord $ BS.unpack a) >> case cont a of
-                               Fail err      -> print ("fail: "++err) >> return (Left err)
-                               Partial cont' -> print "partial" >> f cont'
-                               Done r rest   -> print "done" >> return (Right r)
+                             then f cont
+                             else case cont a of
+                               Fail err      -> return (Left err)
+                               Partial cont' -> f cont'
+                               Done r rest   -> return (Right r)
 
 withXBee :: FilePath -> (SerialPort -> IO ()) -> IO ()
 withXBee device f = withSerial device settings (\ser -> do enterAPI ser
