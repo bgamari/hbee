@@ -51,3 +51,8 @@ Library
   -- Packages needed in order to build this package.
   Build-depends:       base, cereal, bytestring, serialport >= 0.4.4
   
+Executable hbee-term
+  Main-is:             Term.hs
+
+Executable hbee-discover
+  Main-is:             Discover.hs
