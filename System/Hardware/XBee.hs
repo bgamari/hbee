@@ -14,7 +14,7 @@ import Data.Monoid
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 
-settings = defaultSerialSettings { timeout=50000, commSpeed=CS9600 }
+settings = defaultSerialSettings { block=Block 100, commSpeed=CS9600 }
 
 recvLine :: SerialPort -> IO (Maybe ByteString)
 recvLine ser = f ""
