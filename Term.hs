@@ -2,6 +2,7 @@ import Data.Serialize
 import qualified Data.ByteString as BS
 import System.Hardware.XBee
 import System.Hardware.XBee.Utils
+import System.Hardware.XBee.Discover
 import System.Hardware.Serialport hiding (send)
 import Control.Monad
 import Data.Monoid
@@ -15,6 +16,7 @@ import Text.Printf
 data Mode = LocalATMode
           | RemoteATMode Address
           | TerminalMode Address
+          | DiscoverMode
           deriving (Show)
 
 data Args = Args { port :: FilePath
@@ -47,6 +49,9 @@ remoteAtMode = RemoteATMode
 localAtMode :: Parser Mode
 localAtMode = pure LocalATMode
 
+discoverMode :: Parser Mode
+discoverMode = pure DiscoverMode
+
 args = Args
     <$> strOption ( long "device"
                  <> short 'd'
@@ -55,13 +60,13 @@ args = Args
                  <> help "Serial device with XBee attached"
                   )
     <*> subparser ( command "local-at"
-                    (info localAtMode  (progDesc "Issue AT commands to local unit"))
+                    (info localAtMode  (progDesc "Issue AT commands to local node"))
                  <> command "remote-at"
-                    (info remoteAtMode (progDesc "Issue AT commands to remote unit"))
+                    (info remoteAtMode (progDesc "Issue AT commands to remote node"))
                  <> command "terminal"
                     (info terminalMode (progDesc "Standard terminal passthrough mode"))
-                 -- <> command "discover"
-                 --    (info remoteAtMode (progDesc "Issue AT commands to local unit"))
+                 <> command "discover"
+                    (info discoverMode (progDesc "Discover neighboring nodes"))
                  -- <> command "measure"
                  --    (info measureMode (progDesc "Issue AT commands to local unit"))
                   )
@@ -190,3 +195,4 @@ go (RemoteATMode addr) ser = do
                     in do sendFrame ser $ Frame cmd
                           putStr $ showCmd cmd
 
+go (DiscoverMode) ser = discoverNodes ser >>= mapM_ print
