@@ -53,6 +53,7 @@ Library
   
 Executable hbee-term
   Main-is:             Term.hs
+  Ghc-Options:         -threaded
   Build-depends:       optparse-applicative
 
 Executable hbee-discover
