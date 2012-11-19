@@ -13,6 +13,7 @@ import Data.List (isSuffixOf)
 import Data.Monoid
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
+import Control.Concurrent (threadDelay)
 
 settings = defaultSerialSettings { commSpeed=CS9600 }
 
@@ -36,14 +37,17 @@ recvAck ser n = do
 enterAPI :: SerialPort -> IO ()
 enterAPI ser = do
     flush ser
+    threadDelay 1000000
     send ser "+++"
     flush ser
+    threadDelay 1000000
     a <- recvLine ser
     case a of
          -- Confirm that we're already in API mode
          Nothing     -> recvAck ser 0
          -- Enable API mode
-         Just "OK\r" -> do send ser "ATAP 1\r"
+         Just s | "OK\r" `BS.isSuffixOf` s -> do
+                           send ser "ATAP 1\r"
                            Just a <- recvLine ser
                            send ser "ATAP\r"
                            Just a <- recvLine ser
