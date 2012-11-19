@@ -18,11 +18,11 @@ settings = defaultSerialSettings { commSpeed=CS9600 }
 
 recvLine :: SerialPort -> IO (Maybe ByteString)
 recvLine ser = f ""
-        where f s | "\r" `BS.isSuffixOf` s  = return (Just s)
-              f s  = do c <- recv ser 1
-                        case c of
-                             _ | BS.null c -> return Nothing
-                             otherwise     -> f (s `mappend` c)
+    where f s | "\r" `BS.isSuffixOf` s  = return (Just s)
+          f s  = do c <- recv ser 1
+                    case c of
+                         _ | BS.null c -> return Nothing
+                         otherwise     -> f (s `mappend` c)
 
 recvAck :: SerialPort -> Int -> IO ()
 recvAck ser 100 = fail "No ACK recieved after 100 packets. Giving up."
@@ -59,13 +59,13 @@ sendFrame ser frame = let a = encode frame
 
 recvFrame :: SerialPort -> IO (Either String Frame)
 recvFrame ser = f $ runGetPartial (get :: Get Frame)
-        where f cont = do a <- recv ser 20
-                          if BS.null a
-                             then f cont
-                             else case cont a of
-                               Fail err      -> return (Left err)
-                               Partial cont' -> f cont'
-                               Done r rest   -> return (Right r)
+    where f cont = do a <- recv ser 20
+                      if BS.null a
+                         then f cont
+                         else case cont a of
+                           Fail err      -> return (Left err)
+                           Partial cont' -> f cont'
+                           Done r rest   -> return (Right r)
 
 withXBee :: FilePath -> (SerialPort -> IO ()) -> IO ()
 withXBee device f = withSerial device settings (\ser -> do enterAPI ser
