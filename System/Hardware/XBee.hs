@@ -29,8 +29,14 @@ enterAPI ser = do flush ser
                   send ser "+++"
                   a <- recvLine ser
                   case a of
-                       -- Assume we're already in API mode
-                       Nothing     -> return ()
+                       -- Confirm that we're already in API mode
+                       Nothing     -> do sendFrame ser $ Frame $ ATCommand 1 "ATAP" BS.empty
+                                         let recvAck = do f <- recvFrame ser
+                                                          case f of
+                                                              Right (Frame (ATResponse {apiStatus=0})) -> return ()
+                                                              Right (Frame (ATResponse {})) -> fail $ "Unknown response"
+                                                              _ -> recvAck
+                                         recvAck
                        -- Enable API mode
                        Just "OK\r" -> do send ser "ATAP 1\r"
                                          Just a <- recvLine ser
@@ -40,7 +46,7 @@ enterAPI ser = do flush ser
                                          send ser "ATCN\r"
                                          Just a <- recvLine ser
                                          flush ser
-                       Just x      -> return () --fail $ "Unknown response: "++show x
+                       Just x      -> fail $ "Unknown response: "++show x
 
 sendFrame :: SerialPort -> Frame -> IO ()
 sendFrame ser frame = let a = encode frame
