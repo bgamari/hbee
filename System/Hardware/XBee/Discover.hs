@@ -23,6 +23,7 @@ discoverNodes ser =
                         | otherwise  = case decode d of
                                             Left err -> EmptyFrame
                                             Right n  -> NodeFrame n
+               nodeFromFrame (Right _) = EmptyFrame
 
                collect :: [NodeDiscResp] -> IO [NodeDiscResp]
                collect nodes =
