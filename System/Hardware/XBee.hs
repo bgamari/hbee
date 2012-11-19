@@ -30,12 +30,11 @@ enterAPI ser = do flush ser
                   a <- recvLine ser
                   case a of
                        -- Confirm that we're already in API mode
-                       Nothing     -> do sendFrame ser $ Frame $ ATCommand 1 "ATAP" BS.empty
+                       Nothing     -> do sendFrame ser $ Frame $ ATCommand 1 "AP" BS.empty
                                          let recvAck = do f <- recvFrame ser
                                                           case f of
                                                               Right (Frame (ATResponse {apiStatus=0})) -> return ()
-                                                              Right (Frame (ATResponse {})) -> fail $ "Unknown response"
-                                                              _ -> recvAck
+                                                              _ -> print f >> recvAck
                                          recvAck
                        -- Enable API mode
                        Just "OK\r" -> do send ser "ATAP 1\r"
