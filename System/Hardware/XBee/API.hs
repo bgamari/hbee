@@ -4,6 +4,7 @@ module System.Hardware.XBee.API ( Address(..)
                                 , Frame(..)
                                 ) where
 
+import Data.Function (on)
 import Data.List (foldl1')
 import Data.Char (ord)
 import Data.Word
@@ -17,7 +18,16 @@ import System.Hardware.XBee.Utils
 
 data Address = LongAddr Word64
              | ShortAddr Word16
-             deriving (Show, Eq)
+             deriving (Show)
+            
+addrToLongAddr :: Address -> Word64
+addrToLongAddr (LongAddr a) = a
+addrToLongAddr (ShortAddr a) = fromIntegral a
+
+instance Eq Address where
+    (==) = (==) `on` addrToLongAddr
+instance Ord Address where
+    compare = compare `on` addrToLongAddr
 
 data TxStatus = TxSuccess
               | TxNoAck
