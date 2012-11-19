@@ -24,28 +24,34 @@ recvLine ser = f ""
                              _ | BS.null c -> return Nothing
                              otherwise     -> f (s `mappend` c)
 
+recvAck :: SerialPort -> Int -> IO ()
+recvAck ser 100 = fail "No ACK recieved after 100 packets. Giving up."
+recvAck ser n = do
+    f <- recvFrame ser
+    case f of
+         Right (Frame (ATResponse {apiStatus=0})) -> return ()
+         _ -> recvAck ser (n+1)
+
 enterAPI :: SerialPort -> IO ()
-enterAPI ser = do flush ser
-                  send ser "+++"
-                  a <- recvLine ser
-                  case a of
-                       -- Confirm that we're already in API mode
-                       Nothing     -> do sendFrame ser $ Frame $ ATCommand 1 "AP" BS.empty
-                                         let recvAck = do f <- recvFrame ser
-                                                          case f of
-                                                              Right (Frame (ATResponse {apiStatus=0})) -> return ()
-                                                              _ -> print f >> recvAck
-                                         recvAck
-                       -- Enable API mode
-                       Just "OK\r" -> do send ser "ATAP 1\r"
-                                         Just a <- recvLine ser
-                                         send ser "ATAP\r"
-                                         Just a <- recvLine ser
-                                         print a
-                                         send ser "ATCN\r"
-                                         Just a <- recvLine ser
-                                         flush ser
-                       Just x      -> fail $ "Unknown response: "++show x
+enterAPI ser = do
+    flush ser
+    send ser "+++"
+    a <- recvLine ser
+    case a of
+         -- Confirm that we're already in API mode
+         Nothing     -> do sendFrame ser $ Frame $ ATCommand 1 "AP" BS.empty
+                           recvAck ser 0
+         -- Enable API mode
+         Just "OK\r" -> do send ser "ATAP 1\r"
+                           Just a <- recvLine ser
+                           send ser "ATAP\r"
+                           Just a <- recvLine ser
+                           print a
+                           send ser "ATCN\r"
+                           Just a <- recvLine ser
+                           flush ser
+         Just x      -> do sendFrame ser $ Frame $ ATCommand 1 "AP" BS.empty
+                           recvAck ser 0
 
 sendFrame :: SerialPort -> Frame -> IO ()
 sendFrame ser frame = let a = encode frame
