@@ -102,6 +102,7 @@ showCmd resp@(ATResponse {}) =
                           0x1 -> "error"
                           0x2 -> "invalid command"
                           0x3 -> "invalid parameter"
+                          a   -> "unknown status: "++show a
 
 showCmd resp@(RemoteATResponse {}) =
     "=<= from "<>showAddr (apiAddr resp)<>": "
@@ -111,6 +112,8 @@ showCmd resp@(RemoteATResponse {}) =
                           0x1 -> "error"
                           0x2 -> "invalid command"
                           0x3 -> "invalid parameter"
+                          0x4 -> "no response"
+                          a   -> "unknown status: "++show a
     
 showCmd resp@(TransmitStatus {}) =
     "=<= from "<>showAddr (apiAddr resp)<>": "
