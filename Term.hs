@@ -105,7 +105,7 @@ showCmd resp@(ATResponse {}) =
                           a   -> "unknown status: "++show a
 
 showCmd resp@(RemoteATResponse {}) =
-    "=<= from "<>showAddr (apiAddr resp)<>": "
+    "=<= from "<>showAddr (apiSource resp)<>": "
     <>status<>" AT"<>apiATCommand resp<>" = "<>escapeBS (apiCmdData resp)<>"\n"
     where status = case apiStatus resp of
                           0x0 -> "success"
@@ -116,8 +116,7 @@ showCmd resp@(RemoteATResponse {}) =
                           a   -> "unknown status: "++show a
     
 showCmd resp@(TransmitStatus {}) =
-    "=<= from "<>showAddr (apiAddr resp)<>": "
-    <>status<>" AT"<>apiATCommand resp<>" = "<>escapeBS (apiCmdData resp)<>"\n"
+    "=<= TX status "<>status<>"\n"
     where status = case apiTxStatus resp of
                           TxSuccess    -> "success"
                           TxNoAck      -> "no ack"
@@ -149,7 +148,7 @@ showCmd resp@(RemoteATCommand {}) =
 
 showCmd resp@(TransmitRequest {}) =
     ">>> to "<>showAddr (apiDest resp)<>" ("<>intercalate " " options<>"): "
-    <>"AT"<>apiATCommand resp<>" = "<>escapeBS (apiParam resp)<>"\n"
+    <>escapeBS (apiData resp)<>"\n"
     where options = let o = apiOptions resp
                     in concat $ [ if o `testBit` 0 then ["no-ack"] else []
                                 , if o `testBit` 2 then ["broadcast"] else []

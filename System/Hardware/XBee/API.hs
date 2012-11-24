@@ -42,7 +42,7 @@ data APICmd -- Sent from device to host
                          , apiStatus :: Word8
                          , apiCmdData :: BS.ByteString }
             | RemoteATResponse { apiFrameId :: Word8
-                               , apiAddr :: Address
+                               , apiSource :: Address
                                , apiATCommand :: String
                                , apiStatus :: Word8 
                                , apiCmdData :: BS.ByteString}
